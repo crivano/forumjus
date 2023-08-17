@@ -211,7 +211,7 @@ export default function Create(props) {
 
             <div className="row">
               <div className="col">
-                <Button variant="info" onClick={handleClickAddStatement}>
+                <Button variant="info"  disabled={statement.length > 2}  onClick={handleClickAddStatement}>
                   Adicionar Enunciado
                 </Button>
               </div>
