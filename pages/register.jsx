@@ -196,9 +196,9 @@ export default function Create(props) {
               </div>
               <div className="col col-12 col-lg-3">
                 <Form.Group className="mb-3" controlId="attendeeDisability">
-                  <Form.Label>Necessidades Especiais</Form.Label>
+                  <Form.Label>Pessoa com Deficiência</Form.Label>
                   <Form.Control as="select" value={attendeeDisability} onChange={handleChangeAttendeeDisability} >
-                    <option value="">Nenhuma</option>
+                    <option value="">Não</option>
                     <option value="1">Jurista</option>
                     <option value="2">Especialista</option>
                     <option value="3">Magistrado</option>
