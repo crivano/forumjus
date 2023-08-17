@@ -18,6 +18,8 @@ export default function Create(props) {
   const [errorMessage, setErrorMessage] = useState(undefined)
   const [attendeeName, setAttendeeName] = useState(undefined)
   const [attendeeEmail, setAttendeeEmail] = useState(undefined)
+  const [attendeePhone, setAttendeePhone] = useState(undefined)
+  const [attendeeDisability, setAttendeeDisability] = useState(undefined)
   const [attendeeDocument, setAttendeeDocument] = useState(undefined)
   const [attendeeCategory, setAttendeeCategory] = useState(undefined)
   const emptyStatement = {
@@ -42,6 +44,16 @@ export default function Create(props) {
 
   const handleChangeAttendeeName = (evt) => { setAttendeeName(evt.target.value) };
   const handleChangeAttendeeEmail = (evt) => { setAttendeeEmail(evt.target.value) };
+
+  const handleChangeAttendeePhone = (evt) => {
+    let data = event.target.value.replace(/\D/g, "");
+    if (data.length > 11) data = data.substr(0, 11)
+    data = data.replace(/\D/g, '')
+    data = data.replace(/(\d{2})(\d)/, "($1) $2")
+    data = data.replace(/(\d)(\d{4})$/, "$1-$2")
+    setAttendeePhone(data)
+  };
+  const handleChangeAttendeeDisability = (evt) => { setAttendeeDisability(evt.target.value) };
   const handleChangeAttendeeDocument = (evt) => {
     // Get only the numbers from the data input
     let data = event.target.value.replace(/\D/g, "");
@@ -154,22 +166,39 @@ export default function Create(props) {
                 </Form.Group>
               </div>
               <div className="col col-12 col-lg-6">
+                <Form.Group className="mb-3" controlId="attendeeCategory">
+                  <Form.Label>Categoria</Form.Label>
+                  <Form.Control as="select" value={attendeeCategory} onChange={handleChangeAttendeeCategory} >
+                    <option value disabled selected hidden>[Selecione]</option>
+                    <option value="1">Jurista</option>
+                    <option value="2">Especialista</option>
+                    <option value="3">Magistrado</option>
+                  </Form.Control>
+                </Form.Group>
+              </div>
+              <div className="col col-12 col-lg-3">
                 <Form.Group className="mb-3" controlId="attendeeEmail">
                   <Form.Label>E-mail</Form.Label>
                   <Form.Control type="email" value={attendeeEmail} onChange={handleChangeAttendeeEmail} />
                 </Form.Group>
               </div>
-              <div className="col col-12 col-lg-6">
+              <div className="col col-12 col-lg-3">
+                <Form.Group className="mb-3" controlId="attendeePhone">
+                  <Form.Label>Telefone</Form.Label>
+                  <Form.Control type="text" value={attendeePhone} onChange={handleChangeAttendeePhone} />
+                </Form.Group>
+              </div>
+              <div className="col col-12 col-lg-3">
                 <Form.Group className="mb-3" controlId="attendeeDocument">
                   <Form.Label>CPF</Form.Label>
                   <Form.Control type="text" value={attendeeDocument} onChange={handleChangeAttendeeDocument} />
                 </Form.Group>
               </div>
-              <div className="col col-12 col-lg-6">
-                <Form.Group className="mb-3" controlId="attendeeCategory">
-                  <Form.Label>Categoria</Form.Label>
-                  <Form.Control as="select" value={attendeeCategory} onChange={handleChangeAttendeeCategory} >
-                    <option value disabled selected hidden>[Selecione]</option>
+              <div className="col col-12 col-lg-3">
+                <Form.Group className="mb-3" controlId="attendeeDisability">
+                  <Form.Label>Necessidades Especiais</Form.Label>
+                  <Form.Control as="select" value={attendeeDisability} onChange={handleChangeAttendeeDisability} >
+                    <option value="">Nenhuma</option>
                     <option value="1">Jurista</option>
                     <option value="2">Especialista</option>
                     <option value="3">Magistrado</option>
