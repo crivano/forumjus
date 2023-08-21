@@ -30,7 +30,7 @@ export default function Layout({ children, errorMessage, setErrorMessage }) {
         <header>
             <div className="navbar navbar-dark bg-dark shadow-sm mb-4">
                 <div className="container">
-                    <div className="navbar-brand d-flex align-items-center">
+                    <div className="navbar-brand d-flex align-items-center" style={{whiteSpace: 'normal'}}>
                         <span className="text-success font-weight-bold" style={{ fontSize: "150%" }}><FontAwesomeIcon icon={faBuildingColumns} /></span>&nbsp;&nbsp;
                         <strong>I Jornada de Direitos Humanos e Fundamentais da Justiça Federal da Segunda Região</strong>
                     </div>
