@@ -172,7 +172,7 @@ export default function Create(props) {
             <div className="row">
               <div className="col col-12 col-lg-6">
                 <Form.Group className="mb-3" controlId="attendeeName">
-                  <Form.Label>Nome Completo</Form.Label>
+                  <Form.Label>Nome Social</Form.Label>
                   <Form.Control type="text" value={attendeeName} onChange={handleChangeAttendeeName} />
                 </Form.Group>
               </div>
