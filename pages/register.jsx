@@ -156,7 +156,7 @@ export default function Create(props) {
         ? <p className='alert alert-success'>Inscrição realizada com sucesso. Consulte o email "{attendeeEmail}" para ver a confirmação.</p>
         : <>
           <p>
-            Faça sua incrição no fórum e sugira um ou mais enunciados para serem debatidos.
+            Faça sua incrição  na <b>I Jornada de Direitos Humanos e Fundamentais da Justiça Federal da Segunda Região</b> e sugira um ou mais enunciados para serem debatidos.
           </p>
 
           <Form>
