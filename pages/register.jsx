@@ -19,6 +19,7 @@ export default function Create(props) {
   const [attendeeName, setAttendeeName] = useState(undefined)
   const [attendeeEmail, setAttendeeEmail] = useState(undefined)
   const [attendeePhone, setAttendeePhone] = useState(undefined)
+  const [attendeeDisabilityYN, setAttendeeDisabilityYN] = useState(false)
   const [attendeeDisability, setAttendeeDisability] = useState(undefined)
   const [attendeeDocument, setAttendeeDocument] = useState(undefined)
   const [attendeeCategory, setAttendeeCategory] = useState(undefined)
@@ -53,6 +54,7 @@ export default function Create(props) {
     data = data.replace(/(\d)(\d{4})$/, "$1-$2")
     setAttendeePhone(data)
   };
+  const handleChangeAttendeeDisabilityYN = (evt) => { setAttendeeDisabilityYN(evt.target.value === 'true'); if (!attendeeDisabilityYN) setAttendeeDisability(undefined) };
   const handleChangeAttendeeDisability = (evt) => { setAttendeeDisability(evt.target.value) };
   const handleChangeAttendeeDocument = (evt) => {
     // Get only the numbers from the data input
@@ -165,7 +167,7 @@ export default function Create(props) {
                   <Form.Control type="text" value={attendeeName} onChange={handleChangeAttendeeName} />
                 </Form.Group>
               </div>
-              <div className="col col-12 col-lg-6">
+              <div className="col col-12 col-lg-3">
                 <Form.Group className="mb-3" controlId="attendeeCategory">
                   <Form.Label>Categoria</Form.Label>
                   <Form.Control as="select" value={attendeeCategory} onChange={handleChangeAttendeeCategory} >
@@ -195,23 +197,29 @@ export default function Create(props) {
                 </Form.Group>
               </div>
               <div className="col col-12 col-lg-3">
-                <Form.Group className="mb-3" controlId="attendeeDisability">
+                <Form.Group className="mb-3" controlId="attendeeDisabilityYN">
                   <Form.Label>Pessoa com Deficiência</Form.Label>
-                  <Form.Control as="select" value={attendeeDisability} onChange={handleChangeAttendeeDisability} >
-                    <option value="">Não</option>
-                    <option value="1">Jurista</option>
-                    <option value="2">Especialista</option>
-                    <option value="3">Magistrado</option>
+                  <Form.Control as="select" value={attendeeDisabilityYN} onChange={handleChangeAttendeeDisabilityYN} >
+                    <option value={false}>Não</option>
+                    <option value={true}>Sim</option>
                   </Form.Control>
                 </Form.Group>
               </div>
+              {attendeeDisabilityYN ?
+                (<div className="col col-12 col-lg-3">
+                  <Form.Group className="mb-3" controlId="attendeeDisability">
+                    <Form.Label>Qual Deficiência?</Form.Label>
+                    <Form.Control type="text" value={attendeeDisability} onChange={handleChangeAttendeeDisability} />
+                  </Form.Group>
+                </div>) : <></>
+              }
             </div>
 
             {statement.map((s, i) => statementForm(s, i))}
 
             <div className="row">
               <div className="col">
-                <Button variant="info"  disabled={statement.length > 2}  onClick={handleClickAddStatement}>
+                <Button variant="info" disabled={statement.length > 2} onClick={handleClickAddStatement}>
                   Adicionar Enunciado
                 </Button>
               </div>
