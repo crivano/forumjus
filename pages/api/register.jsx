@@ -4,9 +4,27 @@ import mysql from "../../utils/mysql"
 import { apiHandler } from "../../utils/apis"
 import validate from '../../utils/validate'
 
+const request = promisify(require('request'));
+
 //todo: validar corretamente todos os campos
 
 const handler = async function (req, res) {
+    const response_key = req.body["g-recaptcha-response"];
+    const secret_key = process.env.RECAPTCHA_SECRET_KEY;
+    const options = {
+        url: `https://www.google.com/recaptcha/api/siteverify?secret=${secret_key}&response=${response_key}`,
+        headers: { "Content-Type": "application/x-www-form-urlencoded", 'json': true }
+    }
+    try {
+        const re = await request(options);
+        if (!JSON.parse(re.body)['success']) {
+            return res.send({ response: "Failed" });
+        }
+        return res.send({ response: "Successful" });
+    } catch (error) {
+        return res.send({ response: "Failed" });
+    }
+
     const forumId = validate.name(req.body.forumId, "participante")
     const attendeeName = validate.name(req.body.attendeeName, "participante")
     const attendeeEmail = validate.email(req.body.attendeeEmail, "participante")

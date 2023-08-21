@@ -32,7 +32,7 @@ export default function Layout({ children, errorMessage, setErrorMessage }) {
                 <div className="container">
                     <div className="navbar-brand d-flex align-items-center">
                         <span className="text-success font-weight-bold" style={{ fontSize: "150%" }}><FontAwesomeIcon icon={faBuildingColumns} /></span>&nbsp;&nbsp;
-                        <strong>Fórumjus</strong>
+                        <strong>I Jornada de Direitos Humanos e Fundamentais da Justiça Federal da Segunda Região</strong>
                     </div>
                 </div>
             </div>

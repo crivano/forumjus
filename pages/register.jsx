@@ -5,6 +5,9 @@ import Form from 'react-bootstrap/Form';
 import React, { useState } from 'react'
 import Fetcher from '../utils/fetcher'
 import Layout from '../components/layout'
+import ReCAPTCHA from "react-google-recaptcha";
+
+const recaptchaRef = React.createRef();
 
 export async function getServerSideProps({ params }) {
   return {
@@ -92,13 +95,19 @@ export default function Create(props) {
   };
 
   const handleClickRegister = async () => {
+    console.log('register')
     setCreating(true)
+    const recaptchaToken = await recaptchaRef.current.executeAsync();
     try {
-      await Fetcher.post(`${props.API_URL_BROWSER}api/register`, { attendeeName, attendeeEmail, attendeeDocument, attendeeCategory }, { setErrorMessage })
+      await Fetcher.post(`${props.API_URL_BROWSER}api/register`, { recaptchaToken, attendeeName, attendeeEmail, attendeeDocument, attendeeCategory }, { setErrorMessage })
       setCreated(true)
     } catch (e) { }
     setCreating(false)
   };
+
+  const onChange = () => {
+
+  }
 
   const statementForm = (s, i) => {
     return (
@@ -156,7 +165,7 @@ export default function Create(props) {
         ? <p className='alert alert-success'>Inscrição realizada com sucesso. Consulte o email "{attendeeEmail}" para ver a confirmação.</p>
         : <>
           <p>
-            Faça sua incrição  na <b>I Jornada de Direitos Humanos e Fundamentais da Justiça Federal da Segunda Região</b> e sugira um ou mais enunciados para serem debatidos.
+            Faça sua incrição e sugira um ou mais enunciados para serem debatidos.
           </p>
 
           <Form>
@@ -208,7 +217,7 @@ export default function Create(props) {
               {attendeeDisabilityYN ?
                 (<div className="col col-12 col-lg-3">
                   <Form.Group className="mb-3" controlId="attendeeDisability">
-                    <Form.Label>Qual Deficiência?</Form.Label>
+                    <Form.Label>Descrever o Tipo de Deficiência</Form.Label>
                     <Form.Control type="text" value={attendeeDisability} onChange={handleChangeAttendeeDisability} />
                   </Form.Group>
                 </div>) : <></>
@@ -217,7 +226,7 @@ export default function Create(props) {
 
             {statement.map((s, i) => statementForm(s, i))}
 
-            <div className="row">
+            <div className="row" style={{ marginBottom: '6em' }}>
               <div className="col">
                 <Button variant="info" disabled={statement.length > 2} onClick={handleClickAddStatement}>
                   Adicionar Enunciado
@@ -229,6 +238,8 @@ export default function Create(props) {
                 </Button>
               </div>
             </div>
+            <ReCAPTCHA className="mt-5" ref={recaptchaRef} size="invisible" sitekey="6LdaLcQnAAAAAEMD67TvgcCck_qWMkXQefETSt2B" onChange={onChange} />
+            <p className="text-muted d-none">This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy">Privacy Policy</a> and <a href="https://policies.google.com/terms">Terms of Service</a> apply.</p>
           </Form>
         </>
       }
