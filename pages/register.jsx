@@ -146,7 +146,7 @@ export default function Create(props) {
                 <div className="row">
                   <div className="col col-12 col-lg-6">
                     <Form.Group className="mb-3" controlId="attendeeName">
-                      <Form.Label>Nome Social</Form.Label>
+                      <Form.Label>Nome Completo</Form.Label>
                       <Form.Control type="text" value={values.attendeeName} onChange={handleChange} isValid={touched.attendeeName && !errors.attendeeName} isInvalid={touched.attendeeName && errors.attendeeName} />
                       <Form.Control.Feedback type="invalid">{errors.attendeeName}</Form.Control.Feedback>
                     </Form.Group>
