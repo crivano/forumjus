@@ -194,6 +194,7 @@ export default function Create(props) {
                         <option value="1">Jurista</option>
                         <option value="2">Especialista</option>
                         <option value="3">Magistrado</option>
+                        <option value="4">Outro</option>
                       </Form.Control>
                       <Form.Control.Feedback type="invalid">{errors.attendeeCategory}</Form.Control.Feedback>
                     </Form.Group>
