@@ -30,6 +30,12 @@ export default function Create(props) {
     attendeeEmail: yup.string().required('E-mail deve ser preenchido').email('E-mail inválido'),
     attendeeEmailConfirmation: yup.string().required('Confirmação de e-mail deve ser preenchido').oneOf([yup.ref('attendeeEmail'), null], 'Confirmação de e-mail deve ser igual ao e-mail'),
     attendeePhone: yup.string().required('Telefone deve ser preenchido'),
+    attendeeCategory: yup.string().required('Categoria deve ser selecionada'),
+    attendeeCategoryOther: yup.string()
+      .when('attendeeCategory', {
+        is: (attendeeCategory) => attendeeCategory === '4',
+        then: yup.string().required('Descrição da categoria deve ser preenchida')
+      }),
     attendeeDisabilityYN: yup.bool().required('Pessoa com deficiência deve ser preenchido').oneOf([true, false], 'Pessoa com Deficiência deve ser Sim ou Não'),
     attendeeDisability: yup.string()
       .when('attendeeDisabilityYN', {
@@ -40,7 +46,6 @@ export default function Create(props) {
       'test-invalid-cpf',
       'CPF inválido',
       (cpf) => Validate.validateCPF(cpf)),
-    attendeeCategory: yup.string().required('Categoria deve ser selecionada'),
     statement: yup.array().of(
       yup.object().shape({
         text: yup.string().required('Texto do enunciado deve ser preenchido').max(800, 'Deve respeitar o limite máximo de 800 caracteres'),
@@ -132,6 +137,7 @@ export default function Create(props) {
               attendeePhone: '',
               attendeeDocument: '',
               attendeeCategory: undefined,
+              attendeeCategoryOther: '',
               attendeeDisabilityYN: false,
               attendeeDisability: '',
               statement: [{
@@ -194,11 +200,21 @@ export default function Create(props) {
                         <option value="1">Jurista</option>
                         <option value="2">Especialista</option>
                         <option value="3">Magistrado</option>
-                        <option value="4">Outro</option>
+                        <option value="4">Outros</option>
                       </Form.Control>
                       <Form.Control.Feedback type="invalid">{errors.attendeeCategory}</Form.Control.Feedback>
                     </Form.Group>
                   </div>
+                  {values.attendeeCategory === '4' ?
+                    (<div className="col col-12 col-lg-6">
+                      <Form.Group className="mb-3" controlId="attendeeCategoryOther">
+                        <Form.Label>Descrever a Categoria</Form.Label>
+                        <Form.Control type="text" value={values.attendeeCategoryOther} onChange={handleChange} isValid={touched.attendeeCategory && !errors.attendeeCategoryOther} isInvalid={touched.attendeeCategory && errors.attendeeCategoryOther} />
+                        <Form.Control.Feedback type="invalid">{errors.attendeeCategoryOther}</Form.Control.Feedback>
+                      </Form.Group>
+                    </div>) : <></>
+                  }
+
                   <div className="col col-12 col-lg-3">
                     <Form.Group className="mb-3" controlId="attendeeDisabilityYN">
                       <Form.Label>Pessoa com Deficiência</Form.Label>
