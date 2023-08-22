@@ -45,5 +45,39 @@ export default {
         return email.match(
             /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         )
+    },
+
+    validateCPF(s) {
+        if (!s) return false;
+        s = s.replace(/\D/g, "");
+        let Soma = 0;
+        let Resto;
+        let i;
+        if (s.length != 11 ||
+            s == "00000000000" ||
+            s == "11111111111" ||
+            s == "22222222222" ||
+            s == "33333333333" ||
+            s == "44444444444" ||
+            s == "55555555555" ||
+            s == "66666666666" ||
+            s == "77777777777" ||
+            s == "88888888888" ||
+            s == "99999999999")
+            return false;
+
+        for (i = 1; i <= 9; i++) Soma = Soma + parseInt(s.substring(i - 1, i)) * (11 - i);
+        Resto = (Soma * 10) % 11;
+
+        if ((Resto == 10) || (Resto == 11)) Resto = 0;
+        if (Resto != parseInt(s.substring(9, 10))) return false;
+
+        Soma = 0;
+        for (i = 1; i <= 10; i++) Soma = Soma + parseInt(s.substring(i - 1, i)) * (12 - i);
+        Resto = (Soma * 10) % 11;
+
+        if ((Resto == 10) || (Resto == 11)) Resto = 0;
+        if (Resto != parseInt(s.substring(10, 11))) return false;
+        return true;
     }
 }
