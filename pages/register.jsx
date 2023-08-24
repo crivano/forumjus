@@ -8,7 +8,7 @@ import Validate from '../utils/validate'
 import Layout from '../components/layout'
 import ReCAPTCHA from "react-google-recaptcha";
 import * as formik from 'formik';
-import * as yup from 'yup';
+import { registerSchema } from '../utils/schema';
 
 const recaptchaRef = React.createRef();
 
@@ -21,38 +21,10 @@ export async function getServerSideProps({ params }) {
 }
 
 export default function Create(props) {
+  const [attendeeEmail, setAttendeeEmail] = useState(undefined)
   const [created, setCreated] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(undefined)
   const { Formik, FieldArray } = formik;
-
-  const schema = yup.object().shape({
-    attendeeName: yup.string().required('Nome deve ser preenchido'),
-    attendeeChosenName: yup.string(),
-    attendeeEmail: yup.string().required('E-mail deve ser preenchido').email('E-mail inválido'),
-    attendeeEmailConfirmation: yup.string().required('Confirmação de e-mail deve ser preenchido').oneOf([yup.ref('attendeeEmail'), null], 'Confirmação de e-mail deve ser igual ao e-mail'),
-    attendeePhone: yup.string().required('Telefone deve ser preenchido'),
-    attendeeCategory: yup.string().required('Categoria deve ser selecionada'),
-    attendeeCategoryOther: yup.string()
-      .when('attendeeCategory', {
-        is: (attendeeCategory) => attendeeCategory === '4',
-        then: yup.string().required('Descrição da categoria deve ser preenchida')
-      }),
-    attendeeDisabilityYN: yup.bool().required('Pessoa com deficiência deve ser preenchido').oneOf([true, false], 'Pessoa com Deficiência deve ser Sim ou Não'),
-    attendeeDisability: yup.string()
-      .when('attendeeDisabilityYN', {
-        is: (attendeeDisabilityYN) => attendeeDisabilityYN,
-        then: yup.string().required('Descrição da necessidade de atendimento especial deve ser preenchida')
-      }),
-    attendeeDocument: yup.string().required('CPF deve ser preenchido').test(
-      'test-invalid-cpf',
-      'CPF inválido',
-      (cpf) => Validate.validateCPF(cpf)),
-    statement: yup.array().of(
-      yup.object().shape({
-        text: yup.string().required('Texto do enunciado deve ser preenchido').max(800, 'Deve respeitar o limite máximo de 800 caracteres'),
-        justification: yup.string().required('Justificativa do enunciado deve ser preenchida').max(1600, 'Deve respeitar o limite máximo de 1600 caracteres'),
-        committee: yup.string().required('Comissão deve ser seleciondada')
-      }))
-  });
 
   const handleChangeAttendeePhone = (evt) => {
     let data = event.target.value.replace(/\D/g, "");
@@ -92,23 +64,19 @@ export default function Create(props) {
     setStatement(a)
   };
 
-  const handleSubmit = async (event) => {
-    const form = event.currentTarget;
-    if (form.checkValidity() === false) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    setValidated(true);
-
-    console.log('register')
-    setCreating(true)
+  const handleSubmit = async (values, actions) => {
     const recaptchaToken = await recaptchaRef.current.executeAsync();
     try {
-      await Fetcher.post(`${props.API_URL_BROWSER}api/register`, { recaptchaToken, attendeeName, attendeeEmail, attendeeDocument, attendeeCategory }, { setErrorMessage })
+      actions.setSubmitting(false)
+      await Fetcher.post(`${props.API_URL_BROWSER}api/register`, { recaptchaToken, values }, { setErrorMessage })
+      setAttendeeEmail(values.attendeeEmail)
       setCreated(true)
+    } catch (e) {
+      setErrorMessage(e)
+    }
+    try {
+      await recaptchaRef.current.reset();
     } catch (e) { }
-    setCreating(false)
   };
 
   const onChange = () => {
@@ -116,7 +84,7 @@ export default function Create(props) {
   }
 
   return (
-    <Layout >
+    <Layout errorMessage={errorMessage} setErrorMessage={setErrorMessage}>
       <h1 className='mb-4'>Inscrição</h1>
 
       {created
@@ -127,8 +95,8 @@ export default function Create(props) {
           </p>
 
           <Formik
-            validationSchema={schema}
-            onSubmit={console.log}
+            validationSchema={registerSchema}
+            onSubmit={(values, actions) => { handleSubmit(values, actions) }}
             initialValues={{
               attendeeName: '',
               attendeeChosenName: '',
@@ -136,14 +104,15 @@ export default function Create(props) {
               attendeeEmailConfirmation: '',
               attendeePhone: '',
               attendeeDocument: '',
-              attendeeCategory: undefined,
-              attendeeCategoryOther: '',
+              attendeeOccupationId: undefined,
+              attendeeOccupationOther: '',
+              attendeeOccupationAffiliation: '',
               attendeeDisabilityYN: false,
               attendeeDisability: '',
               statement: [{
                 text: '',
                 justification: '',
-                committee: undefined
+                committeeId: undefined
               }]
             }}
           >
@@ -193,24 +162,33 @@ export default function Create(props) {
                     </Form.Group>
                   </div>
                   <div className="col col-12 col-lg-3">
-                    <Form.Group className="mb-3" controlId="attendeeCategory">
-                      <Form.Label>Categoria</Form.Label>
-                      <Form.Control as="select" value={values.attendeeCategory} onChange={handleChange} isValid={touched.attendeeCategory && !errors.attendeeCategory} isInvalid={touched.attendeeCategory && errors.attendeeCategory} >
-                        <option value disabled selected hidden>[Selecione]</option>
-                        <option value="1">Jurista</option>
-                        <option value="2">Especialista</option>
-                        <option value="3">Magistrado</option>
-                        <option value="4">Outros</option>
+                    <Form.Group className="mb-3" controlId="attendeeOccupationId">
+                      <Form.Label>Profissão</Form.Label>
+                      <Form.Control as="select" value={values.attendeeOccupationId} onChange={handleChange} isValid={touched.attendeeOccupationId && !errors.attendeeOccupationId} isInvalid={touched.attendeeOccupationId && errors.attendeeOccupationId} >
+                        <option value hidden={values.attendeeOccupationId}>[Selecione]</option>
+                        <option value="1">Magistrado(a)</option>
+                        <option value="2">Procurador(a)</option>
+                        <option value="3">Integrante da Administração Pública</option>
+                        <option value="4">Advogado(a)</option>
+                        <option value="5">Acadêmico(a)</option>
+                        <option value="6">Outros</option>
                       </Form.Control>
-                      <Form.Control.Feedback type="invalid">{errors.attendeeCategory}</Form.Control.Feedback>
+                      <Form.Control.Feedback type="invalid">{errors.attendeeOccupationId}</Form.Control.Feedback>
                     </Form.Group>
                   </div>
-                  {values.attendeeCategory === '4' ?
+                  <div className="col col-12 col-lg-6">
+                    <Form.Group className="mb-3" controlId="attendeeAffiliation">
+                      <Form.Label>Vinculado a Qual Órgão? (se for o caso)</Form.Label>
+                      <Form.Control type="text" value={values.attendeeAffiliation} onChange={(evt) => { handleChange(evt) }} isValid={touched.attendeeOccupationId && !errors.attendeeAffiliation} isInvalid={touched.attendeeOccupationId && errors.attendeeAffiliation} />
+                      <Form.Control.Feedback type="invalid">{errors.attendeeAffiliation}</Form.Control.Feedback>
+                    </Form.Group>
+                  </div>
+                  {false && values.attendeeOccupationId === '6' ?
                     (<div className="col col-12 col-lg-6">
-                      <Form.Group className="mb-3" controlId="attendeeCategoryOther">
+                      <Form.Group className="mb-3" controlId="attendeeOccupationOther">
                         <Form.Label>Descrever a Categoria</Form.Label>
-                        <Form.Control type="text" value={values.attendeeCategoryOther} onChange={handleChange} isValid={touched.attendeeCategory && !errors.attendeeCategoryOther} isInvalid={touched.attendeeCategory && errors.attendeeCategoryOther} />
-                        <Form.Control.Feedback type="invalid">{errors.attendeeCategoryOther}</Form.Control.Feedback>
+                        <Form.Control type="text" value={values.attendeeOccupationOther} onChange={handleChange} isValid={touched.attendeeOccupationId && !errors.attendeeOccupationOther} isInvalid={touched.attendeeOccupationId && errors.attendeeOccupationOther} />
+                        <Form.Control.Feedback type="invalid">{errors.attendeeOccupationOther}</Form.Control.Feedback>
                       </Form.Group>
                     </div>) : <></>
                   }
@@ -247,15 +225,15 @@ export default function Create(props) {
                           </div>
 
                           <div className="col col-12 col-lg-6">
-                            <Form.Group className="mb-3" controlId={`statement[${i}].committee`}>
+                            <Form.Group className="mb-3" controlId={`statement[${i}].committeeId`}>
                               <Form.Label>Comissão</Form.Label>
-                              <Form.Control as="select" onChange={(evt, i) => handleChange(evt, i)} isValid={touched.attendeeName && !(errors && errors.statement && errors.statement[i] && errors.statement[i].committee)} isInvalid={touched.attendeeName && errors && errors.statement && errors.statement[i] && errors.statement[i].committee}  >
-                                <option value disabled selected hidden>[Selecione]</option>
+                              <Form.Control as="select" value={values.statement[i].committeeId} onChange={(evt, i) => handleChange(evt, i)} isValid={touched.attendeeName && !(errors && errors.statement && errors.statement[i] && errors.statement[i].committeeId)} isInvalid={touched.attendeeName && errors && errors.statement && errors.statement[i] && errors.statement[i].committeeId}  >
+                                <option value hidden={values.statement[i].committeeId}>[Selecione]</option>
                                 <option value="1">Assuntos Fundiários</option>
                                 <option value="2">Enfrentamento ao Assédio Moral e Sexual</option>
                                 <option value="3">Saúde</option>
                               </Form.Control>
-                              <Form.Control.Feedback type="invalid">{errors && errors.statement && errors.statement[i] && errors.statement[i].committee}</Form.Control.Feedback>
+                              <Form.Control.Feedback type="invalid">{errors && errors.statement && errors.statement[i] && errors.statement[i].committeeId}</Form.Control.Feedback>
                             </Form.Group>
                           </div>
 
@@ -269,7 +247,7 @@ export default function Create(props) {
                               <Button variant="secondary" onClick={() => push({
                                 text: '',
                                 justification: '',
-                                committee: undefined
+                                committeeId: undefined
                               })} className="mb-3">
                                 Adicionar Enunciado {i + 2}
                               </Button>
@@ -280,7 +258,7 @@ export default function Create(props) {
                           <div className="col col-12 col-md-6">
                             <Form.Group className="mb-3" controlId={`statement[${i}].text`}>
                               <Form.Label>Enunciado</Form.Label>
-                              <Form.Control as="textarea" rows="10" onChange={(evt, i) => handleChange(evt, i)} isValid={touched.attendeeName && !(errors && errors.statement && errors.statement[i] && errors.statement[i].text)} isInvalid={touched.attendeeName && errors && errors.statement && errors.statement[i] && errors.statement[i].text} />
+                              <Form.Control as="textarea" rows="10" value={values.statement[i].text} onChange={(evt, i) => handleChange(evt, i)} isValid={touched.attendeeName && !(errors && errors.statement && errors.statement[i] && errors.statement[i].text)} isInvalid={touched.attendeeName && errors && errors.statement && errors.statement[i] && errors.statement[i].text} />
                               <Form.Control.Feedback type="invalid">{errors && errors.statement && errors.statement[i] && errors.statement[i].text}</Form.Control.Feedback>
                               <Form.Text className="text-muted">Escreva um texto de no máximo 800 caracteres.</Form.Text>
                             </Form.Group>
@@ -288,7 +266,7 @@ export default function Create(props) {
                           <div className="col col-12 col-md-6">
                             <Form.Group className="mb-3" controlId={`statement[${i}].justification`}>
                               <Form.Label>Justificativa</Form.Label>
-                              <Form.Control as="textarea" rows="10" onChange={(evt, i) => handleChange(evt, i)} isValid={touched.attendeeName && !(errors && errors.statement && errors.statement[i] && errors.statement[i].justification)} isInvalid={touched.attendeeName && errors && errors.statement && errors.statement[i] && errors.statement[i].justification} />
+                              <Form.Control as="textarea" rows="10" value={values.statement[i].justification} onChange={(evt, i) => handleChange(evt, i)} isValid={touched.attendeeName && !(errors && errors.statement && errors.statement[i] && errors.statement[i].justification)} isInvalid={touched.attendeeName && errors && errors.statement && errors.statement[i] && errors.statement[i].justification} />
                               <Form.Control.Feedback type="invalid">{errors && errors.statement && errors.statement[i] && errors.statement[i].justification}</Form.Control.Feedback>
                               <Form.Text className="text-muted">Escreva uma justificativa para o enunciado de no máximo 1600 caracteres.</Form.Text>
                             </Form.Group>
@@ -303,7 +281,7 @@ export default function Create(props) {
                 <div className="row" style={{ marginBottom: '6em' }}>
                   <div className="col"></div>
                   <div className="col col-auto">
-                    <Button type="submit" variant="primary" className="ml-auto" disabled={isSubmitting}>
+                    <Button type="submit" variant="primary" className="ml-auto" disabled={false}>
                       Enviar
                     </Button>
                   </div>

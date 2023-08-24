@@ -16,12 +16,24 @@ export default {
         return await pool.getConnection();
     },
 
-    async createAttendee(forumId, attendeeName, attendeeEmail, attendeeDocument, attendeeCategory, statementTitle, statementText, statementCommittee) {
+    async register(forumId, data) {
+        console.log(data)
         const conn = await this.getConnection()
         conn.beginTransaction()
         try {
-            const result = await conn.query('INSERT INTO attendee(forum_id,attendee_name,attendee_email,category_id,attendee_document,attendee_statement_title,attendee_statement_text,committee_id) VALUES (?,?);', [forumId, attendeeName, attendeeEmail, attendeeDocument, attendeeCategory, statementTitle, statementText, statementCommittee])
+            const resultEmail = await conn.query('SELECT * FROM attendee WHERE attendee_email = ?;', [data.attendeeEmail])
+            if (resultEmail[0].length)  throw `E-mail ${data.attendeeEmail} já consta na base de inscritos`
+
+            const resultDocument = await conn.query('SELECT * FROM attendee WHERE attendee_document = ?;', [data.attendeeDocument])
+            if (resultDocument[0].length)  throw `CPF ${data.attendeeDocument} já consta na base de inscritos`
+
+            const result = await conn.query('INSERT INTO attendee(forum_id,occupation_id,attendee_name,attendee_email,attendee_document,attendee_affiliation) VALUES (?,?,?,?,?,?);',
+                [forumId, data.attendeeOccupationId, data.attendeeName, data.attendeeEmail, data.attendeeDocument, data.attendeeAffiliation])
             const attendeeId = result[0].insertId
+            data.statement.forEach(async (statement) => {
+                const result = await conn.query('INSERT INTO statement(forum_id,attendee_id,committee_id,statement_text,statement_justification) VALUES (?,?,?,?,?);',
+                    [forumId, attendeeId, parseInt(statement.committeeId), statement.text, statement.justification])
+            })
             conn.commit()
             return attendeeId
         } catch (e) {

@@ -17,6 +17,7 @@ export default {
                 if (data && data.error && data.error.err && typeof data.error.err === 'object' && data.error.err !== null && data.error.err.message) errorMsg = data.error.err.message
                 else if (data && data.error && data.error.err && typeof data.error.err === 'string' && data.error.err) errorMsg = data.error.err
                 else if (data && data.error && data.error.message) errorMsg = data.error.message
+                else if (data && data.response && typeof data.response === 'string') errorMsg = data.response
                 else errorMsg = "Indisponibilidade de sistema."
             }
             return data
